@@ -2,72 +2,60 @@ package com.nusiss.paymentservice.service.impl;
 
 import com.nusiss.paymentservice.config.ApiResponse;
 import com.nusiss.paymentservice.dto.PaymentRequest;
-import com.nusiss.paymentservice.entity.MoneyAccount;
+import com.nusiss.paymentservice.dto.PaymentResult;
 import com.nusiss.paymentservice.entity.Payment;
-import com.nusiss.paymentservice.repository.MoneyAccountRepository;
 import com.nusiss.paymentservice.repository.PaymentRepository;
+import com.nusiss.paymentservice.service.PaymentProcessorFactory;
 import com.nusiss.paymentservice.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
-    private MoneyAccountRepository moneyAccountRepository;
+    private PaymentProcessorFactory paymentProcessorFactory;
 
     @Autowired
     private PaymentRepository paymentRepository;
 
-    /*
-     支付处理逻辑：
-     1）查找付款账户
-     2）判断余额是否充足
-     3）余额足够：扣款 + 写入支付记录
-     4）余额不足：返回失败响应
-     */
     @Override
     public ApiResponse<Payment> processPayment(PaymentRequest request) {
-        // 1. 查找付款账户（根据 userId + 币种）
-        Optional<MoneyAccount> accountOpt = moneyAccountRepository
-                .findByUserIdAndCurrency(request.getUserId(), request.getCurrency());
+        try {
+            // 1. 通过工厂获取对应的 PaymentProcessor
+            var processor = paymentProcessorFactory.createProcessor(request.getMethod());
 
-        if (accountOpt.isEmpty()) {
-            return ApiResponse.fail("未找到对应的付款账户");
+            // 2. 调用 processor 处理支付
+            PaymentResult result = processor.processPayment(request);
+
+            // 3. 支付失败，返回失败 ApiResponse
+            if (!result.isSuccess()) {
+                return ApiResponse.fail(result.getMessage());
+            }
+
+            // 4. 支付成功，写入 payment 表
+            Payment payment = new Payment();
+            payment.setOrderId(request.getOrderId());
+            payment.setSenderAccountId(1L); // 可根据 processor 返回结果设置 senderAccountId(默认测试账号1L) TODO: 根据 processor 获取 senderAccountId
+            payment.setReceiverAccountId(999L); // 默认平台收款账户
+            payment.setAmount(request.getAmount());
+            payment.setCurrency(request.getCurrency());
+            payment.setPaymentStatus("PAID");
+            payment.setVerificationMethod(request.getMethod());
+            payment.setPaymentDate(LocalDateTime.now());
+            payment.setCreateUser("system");
+            payment.setCreateDatetime(LocalDateTime.now());
+
+            Payment saved = paymentRepository.save(payment);
+
+            return ApiResponse.success(saved);
+
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.fail("Unsupported payment method: " + request.getMethod());
+        } catch (Exception e) {
+            return ApiResponse.fail("Payment processing failed: " + e.getMessage());
         }
-
-        MoneyAccount account = accountOpt.get();
-
-        // 2. 检查账户余额是否充足
-        if (account.getBalance().compareTo(request.getAmount()) < 0) {
-            return ApiResponse.fail("账户余额不足，支付失败");
-        }
-
-        // 3. 扣减余额并更新账户
-        account.setBalance(account.getBalance().subtract(request.getAmount()));
-        account.setUpdateUser("system");
-        account.setUpdateDatetime(LocalDateTime.now());
-        moneyAccountRepository.save(account);
-
-        // 4. 写入支付记录（状态设为 PAID）
-        Payment payment = new Payment();
-        payment.setOrderId(request.getOrderId());
-        payment.setSenderAccountId(account.getId());
-        payment.setReceiverAccountId(999L); // 默认平台收款账户
-        payment.setAmount(request.getAmount());
-        payment.setCurrency(request.getCurrency());
-        payment.setPaymentStatus("PAID");
-        payment.setVerificationMethod(request.getMethod());
-        payment.setPaymentDate(LocalDateTime.now());
-        payment.setCreateUser("system");
-        payment.setCreateDatetime(LocalDateTime.now());
-
-        Payment saved = paymentRepository.save(payment);
-
-        return ApiResponse.success(saved);
     }
 }
