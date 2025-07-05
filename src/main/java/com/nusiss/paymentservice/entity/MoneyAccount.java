@@ -16,8 +16,8 @@ public class MoneyAccount {
     private Long id;
 
     private Long userId;
-    private String accountType;
-    private BigDecimal balance;
+    private String accountType; // 账户类型 (WeChat / PayNow / PayLah / FaceRecognition)
+    private BigDecimal balance; // 余额
     private String currency;
 
     private String createUser;
