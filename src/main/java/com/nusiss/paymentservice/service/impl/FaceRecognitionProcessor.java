@@ -74,7 +74,7 @@ public class FaceRecognitionProcessor implements PaymentProcessor {
      模拟调用人脸识别 API
      @return boolean
      */
-    private boolean mockFaceRecognitionAPI() {
+    protected boolean mockFaceRecognitionAPI() {
         // 模拟返回 true
         return true;
     }
