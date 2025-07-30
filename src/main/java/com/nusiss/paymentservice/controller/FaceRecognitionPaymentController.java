@@ -120,7 +120,7 @@ public class FaceRecognitionPaymentController {
 
     // Helper method to call Python service for face registration and verification
     private ResponseEntity<String> callPythonFaceRecognitionService(MultipartFile image, String action, Integer userId) {
-        String pythonServiceUrl = "http://localhost:5000/" + action; // register or verify
+        String pythonServiceUrl = "http://167.71.204.186:5000/" + action; // register or verify
 
         // Set headers
         HttpHeaders headers = new HttpHeaders();
