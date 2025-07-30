@@ -1,6 +1,7 @@
 package com.nusiss.paymentservice.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nusiss.commonservice.config.ApiResponse;
 import com.nusiss.commonservice.entity.User;
@@ -46,7 +47,6 @@ public class FaceRecognitionPaymentController {
             // Fetch user details using Feign client
             ResponseEntity<ApiResponse<User>> userResponseEntity = userFeignClient.getCurrentUserInfo(var1);
             User user = userResponseEntity.getBody().getData();
-
             /*// Create a filename based on the user ID
             StringBuffer filename = new StringBuffer();
             filename.append(user.getUserId());
@@ -125,6 +125,7 @@ public class FaceRecognitionPaymentController {
         // Set headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        User user = new User();
 
         try {
             // Convert MultipartFile to a temporary file
@@ -149,11 +150,37 @@ public class FaceRecognitionPaymentController {
                     requestEntity,
                     String.class
             );
+            // Parse the JSON body
+            String responseBody = response.getBody();
+            JsonNode rootNode = objectMapper.readTree(responseBody);
+            String detectedUserId = rootNode.path("userId").asText();
+            try{
+                Integer id = Integer.parseInt(detectedUserId);
+                ResponseEntity<ApiResponse<User>> responseEntityUser = userFeignClient.getUserById(id);
+                // Check response status
+                if (responseEntityUser.getStatusCode().is2xxSuccessful()) {
+                    ApiResponse<User> apiResponse = responseEntityUser.getBody();
+                    if (apiResponse != null && apiResponse.getData() != null) {
+                        user = apiResponse.getData();
+                        System.out.println("User name: " + user.getUsername());  // example field
+                    } else {
+                        System.out.println("No user data found in API response.");
+                    }
+                } else {
+                    System.out.println("Request failed with status: " + responseEntityUser.getStatusCode());
+                }
+                // Clean up temp file
+                tempFile.delete();
+                Map<String, Object> boduMap = new HashMap<>();
+                boduMap.put("message", "successfully made a payment, payer name: " + user);
+                boduMap.put("status", 200);
 
-            // Clean up temp file
-            tempFile.delete();
+                return ResponseEntity.status(200).body(objectMapper.writeValueAsString(boduMap));
+            } catch (Exception e){
 
-            return response;
+            }
+
+
         } catch (Exception e) {
             log.error("Error calling Python face recognition service", e);
             Map<String, Object> errorBody = new HashMap<>();
