@@ -152,29 +152,35 @@ public class FaceRecognitionPaymentController {
             );
             // Parse the JSON body
             String responseBody = response.getBody();
-            JsonNode rootNode = objectMapper.readTree(responseBody);
-            String detectedUserId = rootNode.path("userId").asText();
-            Integer id = Integer.parseInt(detectedUserId);
-            ResponseEntity<ApiResponse<User>> responseEntityUser = userFeignClient.getUserById(id);
-            // Check response status
-            if (responseEntityUser.getStatusCode().is2xxSuccessful()) {
-                ApiResponse<User> apiResponse = responseEntityUser.getBody();
-                if (apiResponse != null && apiResponse.getData() != null) {
-                    user = apiResponse.getData();
-                    System.out.println("User name: " + user.getUsername());  // example field
-                } else {
-                    System.out.println("No user data found in API response.");
-                }
-            } else {
-                System.out.println("Request failed with status: " + responseEntityUser.getStatusCode());
-            }
-            // Clean up temp file
             tempFile.delete();
-            Map<String, Object> boduMap = new HashMap<>();
-            boduMap.put("message", "successfully made a payment, payer name: " + user);
-            boduMap.put("status", 200);
+            if("register".equals(action)){
+                return response;
+            } else {
+                JsonNode rootNode = objectMapper.readTree(responseBody);
+                String detectedUserId = rootNode.path("userId").asText();
+                Integer id = Integer.parseInt(detectedUserId);
+                ResponseEntity<ApiResponse<User>> responseEntityUser = userFeignClient.getUserById(id);
+                // Check response status
+                if (responseEntityUser.getStatusCode().is2xxSuccessful()) {
+                    ApiResponse<User> apiResponse = responseEntityUser.getBody();
+                    if (apiResponse != null && apiResponse.getData() != null) {
+                        user = apiResponse.getData();
+                        System.out.println("User name: " + user.getUsername());  // example field
+                    } else {
+                        System.out.println("No user data found in API response.");
+                    }
+                } else {
+                    System.out.println("Request failed with status: " + responseEntityUser.getStatusCode());
+                }
+                // Clean up temp file
 
-            return ResponseEntity.status(200).body(objectMapper.writeValueAsString(boduMap));
+                Map<String, Object> boduMap = new HashMap<>();
+                boduMap.put("message", "successfully made a payment, payer name: " + user.getUsername());
+                boduMap.put("status", 200);
+
+                return ResponseEntity.status(200).body(objectMapper.writeValueAsString(boduMap));
+            }
+
 
         } catch (Exception e) {
             log.error("Error calling Python face recognition service", e);
