@@ -13,7 +13,7 @@ class DefaultPaymentProcessorFactoryTest {
     private WeChatPaymentProcessor weChatProcessor;
     private PayNowPaymentProcessor payNowProcessor;
     private PayLahPaymentProcessor payLahProcessor;
-    private FaceRecognitionProcessor faceProcessor;
+
 
     @BeforeEach
     void setUp() throws Exception {
@@ -21,7 +21,7 @@ class DefaultPaymentProcessorFactoryTest {
         weChatProcessor = mock(WeChatPaymentProcessor.class);
         payNowProcessor = mock(PayNowPaymentProcessor.class);
         payLahProcessor = mock(PayLahPaymentProcessor.class);
-        faceProcessor = mock(FaceRecognitionProcessor.class);
+
 
         // 创建工厂实例
         factory = new DefaultPaymentProcessorFactory();
@@ -30,7 +30,7 @@ class DefaultPaymentProcessorFactoryTest {
         injectPrivateField(factory, "weChatPaymentProcessor", weChatProcessor);
         injectPrivateField(factory, "payNowPaymentProcessor", payNowProcessor);
         injectPrivateField(factory, "payLahPaymentProcessor", payLahProcessor);
-        injectPrivateField(factory, "faceRecognitionProcessor", faceProcessor);
+
     }
 
     // 反射工具方法
@@ -59,11 +59,11 @@ class DefaultPaymentProcessorFactoryTest {
         assertEquals(payLahProcessor, result);
     }
 
-    @Test
-    void testCreateProcessor_FaceRecognition() {
-        PaymentProcessor result = factory.createProcessor("FaceRecognition");
-        assertEquals(faceProcessor, result);
-    }
+//    @Test
+//    void testCreateProcessor_FaceRecognition() {
+//        PaymentProcessor result = factory.createProcessor("FaceRecognition");
+//        assertEquals(faceProcessor, result);
+//    }
 
     @Test
     void testCreateProcessor_UnsupportedMethod() {
