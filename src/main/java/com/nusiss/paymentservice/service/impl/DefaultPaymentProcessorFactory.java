@@ -20,8 +20,8 @@ public class DefaultPaymentProcessorFactory implements PaymentProcessorFactory {
     @Autowired
     private PayLahPaymentProcessor payLahPaymentProcessor;
 
-    @Autowired
-    private FaceRecognitionProcessor faceRecognitionProcessor;
+//    @Autowired
+//    private FaceRecognitionProcessor faceRecognitionProcessor;
 
     @Override
     public PaymentProcessor createProcessor(String method) {
@@ -32,8 +32,8 @@ public class DefaultPaymentProcessorFactory implements PaymentProcessorFactory {
                 return payNowPaymentProcessor;
             case "PayLah":
                 return payLahPaymentProcessor;
-            case "FaceRecognition":
-                return faceRecognitionProcessor;
+//            case "FaceRecognition":
+//                return faceRecognitionProcessor;
             default:
                 throw new IllegalArgumentException("Unsupported payment method: " + method);
         }

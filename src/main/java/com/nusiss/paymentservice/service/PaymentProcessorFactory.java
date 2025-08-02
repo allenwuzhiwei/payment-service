@@ -10,7 +10,7 @@ public interface PaymentProcessorFactory {
 
     /*
      根据支付方式创建对应的 PaymentProcessor 实例
-     @param method 支付方式 (WeChat / PayNow / PayLah / FaceRecognition)
+     @param method 支付方式 (WeChat / PayNow / PayLah)
      @return PaymentProcessor
      */
     PaymentProcessor createProcessor(String method);
