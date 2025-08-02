@@ -98,7 +98,7 @@ public class FaceRecognitionPaymentController {
     }
 
     // Endpoint for face verification
-    @PostMapping("/payment")
+    @PostMapping("/faceVerify")
     public ResponseEntity<String> verifyFace(@RequestParam("image") MultipartFile image) throws IOException {
         try{
             /*// Save the uploaded image temporarily
@@ -125,7 +125,7 @@ public class FaceRecognitionPaymentController {
         // Set headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        User user = new User();
+        Map<String, Object> bodyMap = new HashMap<>();
 
         try {
             // Convert MultipartFile to a temporary file
@@ -153,12 +153,26 @@ public class FaceRecognitionPaymentController {
             // Parse the JSON body
             String responseBody = response.getBody();
             tempFile.delete();
+            JsonNode rootNode = objectMapper.readTree(responseBody);
             if("register".equals(action)){
                 return response;
             } else {
-                JsonNode rootNode = objectMapper.readTree(responseBody);
-                String detectedUserId = rootNode.path("userId").asText();
-                Integer id = Integer.parseInt(detectedUserId);
+
+                if (response.getStatusCode().is2xxSuccessful()) {
+
+                    String detectedUserId = rootNode.path("userId").asText();
+                    bodyMap.put("message", "successfully detect user.");
+                    bodyMap.put("status", 200);
+                    bodyMap.put("userId", detectedUserId);
+                } else{
+                    String message = rootNode.path("message").asText();
+                    bodyMap.put("message", message);
+                    bodyMap.put("status", response.getStatusCode());
+                    bodyMap.put("userId", "");
+                }
+
+
+                /*Integer id = Integer.parseInt(detectedUserId);
                 ResponseEntity<ApiResponse<User>> responseEntityUser = userFeignClient.getUserById(id);
                 // Check response status
                 if (responseEntityUser.getStatusCode().is2xxSuccessful()) {
@@ -171,14 +185,11 @@ public class FaceRecognitionPaymentController {
                     }
                 } else {
                     System.out.println("Request failed with status: " + responseEntityUser.getStatusCode());
-                }
+                }*/
                 // Clean up temp file
 
-                Map<String, Object> boduMap = new HashMap<>();
-                boduMap.put("message", "successfully made a payment, payer name: " + user.getUsername());
-                boduMap.put("status", 200);
 
-                return ResponseEntity.status(200).body(objectMapper.writeValueAsString(boduMap));
+                return ResponseEntity.status(200).body(objectMapper.writeValueAsString(bodyMap));
             }
 
 
