@@ -11,4 +11,7 @@ public class PaymentRequest {
     private BigDecimal amount;       // 订单金额
     private String currency;         // 币种
     private String method;           // 支付方式（WeChat / PayNow）
+    private Long productId;
+    private Long sellerId;
+
 }
