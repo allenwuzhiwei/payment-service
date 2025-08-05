@@ -3,6 +3,7 @@ package com.nusiss.paymentservice.repository;
 import com.nusiss.paymentservice.entity.MoneyAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 
 
 public interface MoneyAccountRepository extends JpaRepository<MoneyAccount, Long> {
@@ -13,5 +14,7 @@ public interface MoneyAccountRepository extends JpaRepository<MoneyAccount, Long
      @return MoneyAccount
      */
     MoneyAccount findByUserIdAndAccountType(Long userId, String accountType);
+
+    Optional<MoneyAccount> findByUserId(Long userId);
 
 }
