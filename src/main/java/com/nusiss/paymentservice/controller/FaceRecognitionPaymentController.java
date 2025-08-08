@@ -152,7 +152,6 @@ public class FaceRecognitionPaymentController {
             );
             // Parse the JSON body
             String responseBody = response.getBody();
-            tempFile.delete();
             boolean deleted = tempFile.delete();
             if (!deleted) {
                 log.warn("Temporary file deletion failed: {}", tempFile.getAbsolutePath());
