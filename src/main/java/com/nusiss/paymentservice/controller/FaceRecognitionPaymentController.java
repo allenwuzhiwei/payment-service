@@ -19,12 +19,12 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
+
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/api/face-recognition")
@@ -153,6 +153,10 @@ public class FaceRecognitionPaymentController {
             // Parse the JSON body
             String responseBody = response.getBody();
             tempFile.delete();
+            boolean deleted = tempFile.delete();
+            if (!deleted) {
+                log.warn("Temporary file deletion failed: {}", tempFile.getAbsolutePath());
+            }
             JsonNode rootNode = objectMapper.readTree(responseBody);
             if("register".equals(action)){
                 return response;

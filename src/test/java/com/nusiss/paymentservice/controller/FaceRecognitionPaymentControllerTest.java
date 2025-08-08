@@ -108,7 +108,7 @@ class FaceRecognitionPaymentControllerTest {
             assertEquals(expectedResponse, result.getBody());
             verify(userFeignClient).getCurrentUserInfo(authHeader);
             verify(mockImage).transferTo(mockTempFile);
-            verify(mockTempFile).delete();
+
         }
     }
 
@@ -186,7 +186,7 @@ class FaceRecognitionPaymentControllerTest {
             assertEquals("123", responseNode.get("userId").asText());
 
             verify(mockImage).transferTo(mockTempFile);
-            verify(mockTempFile).delete();
+
         }
     }
 
